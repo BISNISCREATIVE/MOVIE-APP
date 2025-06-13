@@ -48,7 +48,7 @@ export const HeroSection = ({ movie, isFavorite, onToggleFavorite }: HeroSection
             {movie.overview}
           </p>
           
-          <div className="flex items-center justify-center md:justify-start gap-4">
+          <div className="flex items-center gap-4">
             <button className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg flex items-center gap-2 transition-colors">
               <Play className="w-5 h-5" />
               Watch Trailer
