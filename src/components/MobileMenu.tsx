@@ -1,23 +1,13 @@
 
 import { Link } from "react-router-dom";
-import { X } from "lucide-react";
-import { SearchInput } from "./SearchInput";
+import { X, Search } from "lucide-react";
 
 interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
-  searchQuery?: string;
-  onSearchChange?: (value: string) => void;
-  isSearchLoading?: boolean;
 }
 
-export const MobileMenu = ({ 
-  isOpen, 
-  onClose, 
-  searchQuery = "", 
-  onSearchChange,
-  isSearchLoading = false
-}: MobileMenuProps) => {
+export const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
   if (!isOpen) return null;
 
   return (
@@ -35,12 +25,14 @@ export const MobileMenu = ({
       </div>
       
       <div className="p-4 space-y-6">
-        <SearchInput
-          value={searchQuery}
-          onChange={onSearchChange || (() => {})}
-          placeholder="Search Movie"
-          isLoading={isSearchLoading}
-        />
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+          <input
+            type="text"
+            placeholder="Search Movie"
+            className="w-full bg-muted rounded-lg pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
         
         <nav className="space-y-4">
           <Link

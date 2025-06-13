@@ -4,13 +4,17 @@ import { useParams, Link } from "react-router-dom";
 import { Search, Menu, Heart, Play, Calendar, Star, Users } from "lucide-react";
 import { MobileMenu } from "@/components/MobileMenu";
 import { CastMember } from "@/components/CastMember";
+import { TrailerPlayer } from "@/components/TrailerPlayer";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useMovieDetail } from "@/hooks/useMovieDetail";
+import { getMovieVideos } from "@/services/tmdb";
 import { toast } from "@/hooks/use-toast";
 
 const MovieDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showTrailer, setShowTrailer] = useState(false);
+  const [trailerKey, setTrailerKey] = useState<string>("");
   const { movie, cast, isLoading } = useMovieDetail(id);
   const { favorites, addToFavorites, removeFromFavorites } = useFavorites();
 
@@ -30,6 +34,32 @@ const MovieDetail = () => {
     }
   };
 
+  const handleWatchTrailer = async () => {
+    if (!id) return;
+    
+    try {
+      const videos = await getMovieVideos(id);
+      const trailer = videos.find(video => video.type === 'Trailer' && video.site === 'YouTube');
+      
+      if (trailer) {
+        setTrailerKey(trailer.key);
+        setShowTrailer(true);
+      } else {
+        toast({
+          title: "Trailer not available",
+          description: "Sorry, no trailer is available for this movie.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error loading trailer",
+        description: "Failed to load movie trailer.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoading || !movie) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -44,17 +74,17 @@ const MovieDetail = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <Link to="/" className="flex items-center gap-2 text-xl font-bold">
               🎬 Movie
             </Link>
             <nav className="hidden md:flex items-center gap-6">
-              <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
                 Home
               </Link>
-              <Link to="/favorites" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/favorites" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
                 Favorites
               </Link>
             </nav>
@@ -66,7 +96,7 @@ const MovieDetail = () => {
               <input
                 type="text"
                 placeholder="Search Movie"
-                className="bg-muted rounded-full pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                className="bg-muted/50 backdrop-blur-sm rounded-full pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary border border-border/50"
               />
             </div>
             <button
@@ -103,11 +133,11 @@ const MovieDetail = () => {
           </div>
           
           <div className="flex-1 text-center md:text-left">
-            <h1 className="text-4xl md:text-6xl font-bold mb-4">
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 text-white">
               {movie.title}
             </h1>
             
-            <div className="flex items-center justify-center md:justify-start gap-2 mb-6 text-muted-foreground">
+            <div className="flex items-center justify-center md:justify-start gap-2 mb-6 text-gray-300">
               <Calendar className="w-4 h-4" />
               <span>{new Date(movie.release_date).toLocaleDateString('id-ID', { 
                 day: 'numeric', 
@@ -117,7 +147,10 @@ const MovieDetail = () => {
             </div>
             
             <div className="flex items-center justify-center md:justify-start gap-4 mb-8">
-              <button className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg flex items-center gap-2 transition-colors">
+              <button 
+                onClick={handleWatchTrailer}
+                className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg flex items-center gap-2 transition-colors"
+              >
                 <Play className="w-5 h-5" />
                 Watch Trailer
               </button>
@@ -126,7 +159,7 @@ const MovieDetail = () => {
                 className={`p-3 rounded-lg transition-colors ${
                   isFavorite 
                     ? 'bg-red-600 text-white' 
-                    : 'bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground'
+                    : 'bg-white/20 hover:bg-white/30 text-white'
                 }`}
               >
                 <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
@@ -134,22 +167,24 @@ const MovieDetail = () => {
             </div>
             
             <div className="grid grid-cols-3 gap-4 max-w-md mx-auto md:mx-0">
-              <div className="bg-card rounded-lg p-4 text-center">
+              <div className="bg-card/80 backdrop-blur-sm rounded-lg p-4 text-center">
                 <Star className="w-6 h-6 text-yellow-500 mx-auto mb-2" />
-                <div className="text-sm text-muted-foreground mb-1">Rating</div>
-                <div className="font-bold">{movie.vote_average.toFixed(1)}/10</div>
+                <div className="text-sm text-gray-300 mb-1">Rating</div>
+                <div className="font-bold text-white">{movie.vote_average.toFixed(1)}/10</div>
               </div>
-              <div className="bg-card rounded-lg p-4 text-center">
+              <div className="bg-card/80 backdrop-blur-sm rounded-lg p-4 text-center">
                 <div className="w-6 h-6 bg-blue-500 rounded mx-auto mb-2 flex items-center justify-center">
                   <span className="text-xs font-bold text-white">G</span>
                 </div>
-                <div className="text-sm text-muted-foreground mb-1">Genre</div>
-                <div className="font-bold text-sm">Action</div>
+                <div className="text-sm text-gray-300 mb-1">Genre</div>
+                <div className="font-bold text-white text-sm">
+                  {movie.genres?.length > 0 ? movie.genres[0].name : 'Action'}
+                </div>
               </div>
-              <div className="bg-card rounded-lg p-4 text-center">
+              <div className="bg-card/80 backdrop-blur-sm rounded-lg p-4 text-center">
                 <Users className="w-6 h-6 text-green-500 mx-auto mb-2" />
-                <div className="text-sm text-muted-foreground mb-1">Age Limit</div>
-                <div className="font-bold">13</div>
+                <div className="text-sm text-gray-300 mb-1">Age Limit</div>
+                <div className="font-bold text-white">13</div>
               </div>
             </div>
           </div>
@@ -158,8 +193,16 @@ const MovieDetail = () => {
 
       {/* Content Sections */}
       <div className="container mx-auto px-4 py-12">
+        {/* Trailer Player */}
+        {showTrailer && trailerKey && (
+          <TrailerPlayer 
+            videoKey={trailerKey} 
+            onClose={() => setShowTrailer(false)} 
+          />
+        )}
+
         {/* Overview */}
-        <section className="mb-12">
+        <section className="mb-12 mt-8">
           <h2 className="text-2xl md:text-3xl font-bold mb-6">Overview</h2>
           <p className="text-muted-foreground leading-relaxed max-w-4xl">
             {movie.overview}

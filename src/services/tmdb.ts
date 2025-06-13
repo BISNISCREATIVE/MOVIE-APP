@@ -2,13 +2,15 @@
 import axios from 'axios';
 import { Movie, MovieDetail, CastMember } from '@/types/movie';
 
-const API_KEY = '4e44d9029b1270a757cddc766a1bcb63'; // Demo key - replace with your own
+const API_KEY = '4e44d9029b1270a757cddc766a1bcb63';
 const BASE_URL = 'https://api.themoviedb.org/3';
+const BEARER_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyNzE1OGI0OWI4OTQzOTU1ZjI4MTViN2I5OWUwYTY3OCIsIm5iZiI6MTc0OTcwOTE1MC44MDksInN1YiI6IjY4NGE3MTVlZjZlZDExNzg0MjM0Mzc2MCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.QlnOilr_89KQE6HpxV611Jz_h0tRXgk64GT7I2LNQJ4';
 
 const tmdbApi = axios.create({
   baseURL: BASE_URL,
-  params: {
-    api_key: API_KEY,
+  headers: {
+    'Authorization': `Bearer ${BEARER_TOKEN}`,
+    'accept': 'application/json',
   },
 });
 
@@ -22,9 +24,14 @@ export const getPopularMovies = async (): Promise<Movie[]> => {
   return response.data.results;
 };
 
-export const getNowPlayingMovies = async (): Promise<Movie[]> => {
-  const response = await tmdbApi.get('/movie/now_playing');
-  return response.data.results;
+export const getNowPlayingMovies = async (page: number = 1): Promise<{ results: Movie[]; total_pages: number }> => {
+  const response = await tmdbApi.get('/movie/now_playing', {
+    params: { page }
+  });
+  return {
+    results: response.data.results,
+    total_pages: response.data.total_pages
+  };
 };
 
 export const getMovieDetail = async (id: string): Promise<MovieDetail> => {
@@ -37,9 +44,19 @@ export const getMovieCredits = async (id: string): Promise<CastMember[]> => {
   return response.data.cast;
 };
 
+export const getMovieVideos = async (id: string): Promise<any[]> => {
+  const response = await tmdbApi.get(`/movie/${id}/videos`);
+  return response.data.results;
+};
+
 export const searchMovies = async (query: string): Promise<Movie[]> => {
   const response = await tmdbApi.get('/search/movie', {
     params: { query },
   });
   return response.data.results;
+};
+
+export const getGenres = async (): Promise<{ id: number; name: string }[]> => {
+  const response = await tmdbApi.get('/genre/movie/list');
+  return response.data.genres;
 };
