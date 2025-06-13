@@ -105,6 +105,44 @@ const Index = () => {
           isLoadingMore={isLoadingMore}
           hasMore={hasMore}
         />
+         // Infinite scroll with improved performance
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop
+        >= document.documentElement.offsetHeight - 1000 &&
+        hasMore &&
+        !isLoading &&
+        !isLoadingMore
+      ) {
+        loadMore();
+      }
+    };
+
+    const throttledScroll = throttle(handleScroll, 200);
+    window.addEventListener('scroll', throttledScroll);
+    return () => window.removeEventListener('scroll', throttledScroll);
+  }, [loadMore, hasMore, isLoading, isLoadingMore]);
+
+  // Throttle function for better performance
+  const throttle = (func: Function, delay: number) => {
+    let timeoutId: NodeJS.Timeout;
+    let lastExecTime = 0;
+    return function (...args: any[]) {
+      const currentTime = Date.now();
+      
+      if (currentTime - lastExecTime > delay) {
+        func(...args);
+        lastExecTime = currentTime;
+      } else {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          func(...args);
+          lastExecTime = Date.now();
+        }, delay - (currentTime - lastExecTime));
+      }
+    };
+  };
       </main>
 
       {/* Footer */}
