@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { MovieCard } from "./MovieCard";
 import { Movie } from "@/types/movie";
 
@@ -9,9 +10,6 @@ interface MovieSectionProps {
   onToggleFavorite: (movie: Movie) => void;
   showIndexes?: boolean;
   showLoadMore?: boolean;
-  onLoadMore?: () => void;
-  isLoadingMore?: boolean;
-  hasMore?: boolean;
 }
 
 export const MovieSection = ({ 
@@ -20,17 +18,17 @@ export const MovieSection = ({
   favorites, 
   onToggleFavorite, 
   showIndexes = false,
-  showLoadMore = false,
-  onLoadMore,
-  isLoadingMore = false,
-  hasMore = false
+  showLoadMore = false 
 }: MovieSectionProps) => {
+  const [showAll, setShowAll] = useState(false);
+  const displayMovies = showAll ? movies : movies.slice(0, showIndexes ? 5 : 8);
+
   return (
     <section className="container mx-auto px-4 py-12">
       <h2 className="text-2xl md:text-3xl font-bold mb-8">{title}</h2>
       
-      <div className="gri d grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-8">
-        {movies.map((movie, index) => (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-8">
+        {displayMovies.map((movie, index) => (
           <MovieCard
             key={movie.id}
             movie={movie}
@@ -42,14 +40,13 @@ export const MovieSection = ({
         ))}
       </div>
 
-      {showLoadMore && hasMore && (
+      {showLoadMore && movies.length > 8 && (
         <div className="text-center">
           <button
-            onClick={onLoadMore}
-            disabled={isLoadingMore}
-            className="bg-muted hover:bg-muted/80 text-foreground px-6 py-3 rounded-lg transition-colors disabled:opacity-50"
+            onClick={() => setShowAll(!showAll)}
+            className="bg-muted hover:bg-muted/80 text-foreground px-6 py-3 rounded-lg transition-colors"
           >
-            {isLoadingMore ? 'Loading...' : 'Load More'}
+            {showAll ? 'Show Less' : 'Load More'}
           </button>
         </div>
       )}
